@@ -1,0 +1,140 @@
+#include <iostream>
+#include <queue>
+#include <vector>
+#include <string>
+#include <algorithm>
+using namespace std;
+
+struct Task {
+    int id;
+    string name;
+    int priority;
+    int deadline;
+};
+
+// Custom comparator: higher priority first, then earlier deadline
+struct CompareTask {
+    bool operator()(const Task& a, const Task& b) const {
+        if (a.priority == b.priority)
+            return a.deadline > b.deadline; // smaller deadline first
+        return a.priority < b.priority;     // higher priority first
+    }
+};
+
+class TaskManager {
+private:
+    priority_queue<Task, vector<Task>, CompareTask> taskQueue;
+    vector<Task> addedTasks;
+    vector<Task> completedTasks;
+    int nextId = 1;
+
+public:
+    void addTask(string name, int priority, int deadline) {
+        Task t = {nextId++, name, priority, deadline};
+        taskQueue.push(t);
+        addedTasks.push_back(t);
+        cout << "[+] Task Added: " << t.name 
+             << " (Priority " << t.priority 
+             << ", Deadline " << t.deadline << ")" << endl;
+    }
+
+    void completeTask() {
+        if (taskQueue.empty()) {
+            cout << "[!] No tasks to complete!" << endl;
+            return;
+        }
+        Task t = taskQueue.top();
+        taskQueue.pop();
+        completedTasks.push_back(t);
+        cout << "[✓] Completed Task: " << t.name << endl;
+    }
+
+    void showAddedTasks() {
+        cout << "\n--- Tasks in Order of Addition ---" << endl;
+        for (auto &t : addedTasks) {
+            cout << "ID: " << t.id << " | " << t.name 
+                 << " | Priority: " << t.priority 
+                 << " | Deadline: " << t.deadline << endl;
+        }
+    }
+
+    void showScheduledTasks() {
+        cout << "\n--- Tasks Scheduled by Priority & Deadline ---" << endl;
+        if (taskQueue.empty()) {
+            cout << "[!] No tasks scheduled!" << endl;
+            return;
+        }
+        priority_queue<Task, vector<Task>, CompareTask> temp = taskQueue;
+        while (!temp.empty()) {
+            Task t = temp.top();
+            temp.pop();
+            cout << "ID: " << t.id << " | " << t.name 
+                 << " | Priority: " << t.priority 
+                 << " | Deadline: " << t.deadline << endl;
+        }
+    }
+
+    void showCompletedTasks() {
+        cout << "\n--- Completed Tasks ---" << endl;
+        if (completedTasks.empty()) {
+            cout << "[!] No tasks completed yet!" << endl;
+            return;
+        }
+        for (auto &t : completedTasks) {
+            cout << "ID: " << t.id << " | " << t.name 
+                 << " | Priority: " << t.priority 
+                 << " | Deadline: " << t.deadline << endl;
+        }
+    }
+};
+
+int main() {
+    TaskManager tm;
+    int choice;
+    string name;
+    int priority, deadline;
+
+    do {
+        cout << "\n===== Task Manager Menu =====" << endl;
+        cout << "1. Add Task" << endl;
+        cout << "2. Complete Task" << endl;
+        cout << "3. Show Added Tasks" << endl;
+        cout << "4. Show Scheduled Tasks" << endl;
+        cout << "5. Show Completed Tasks" << endl;
+        cout << "0. Exit" << endl;
+        cout << "Enter choice: ";
+        cin >> choice;
+
+        switch (choice) {
+            case 1:
+                cout << "Enter task name: ";
+                cin.ignore();
+                getline(cin, name);
+                cout << "Enter priority (higher = more important): ";
+                cin >> priority;
+                cout << "Enter deadline (natural number): ";
+                cin >> deadline;
+                tm.addTask(name, priority, deadline);
+                break;
+            case 2:
+                tm.completeTask();
+                break;
+            case 3:
+                tm.showAddedTasks();
+                break;
+            case 4:
+                tm.showScheduledTasks();
+                break;
+            case 5:
+                tm.showCompletedTasks();
+                break;
+            case 0:
+                cout << "Exiting Task Manager..." << endl;
+                break;
+            default:
+                cout << "[!] Invalid choice!" << endl;
+        }
+    } while (choice != 0);
+
+    return 0;
+}
